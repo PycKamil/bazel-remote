@@ -196,9 +196,9 @@ func (c *s3Cache) Put(ctx context.Context, kind cache.EntryKind, hash string, si
 	}
 }
 
-func (c *s3Cache) CopyObject(ctx context.Context, bucket string, object string) {
+func (c *s3Cache) UpdateModificationTimestamp(ctx context.Context, bucket string, object string) {
 	_, err := c.mcore.CopyObject(
-		context.Background(),
+		ctx,
 		bucket,
 		object,
 		bucket,
@@ -228,7 +228,7 @@ func (c *s3Cache) Get(ctx context.Context, kind cache.EntryKind, hash string) (i
 		return nil, -1, err
 	}
 	cacheHits.Inc()
-	c.CopyObject(ctx, c.bucket, c.objectKey(hash, kind))
+	c.UpdateModificationTimestamp(ctx, c.bucket, c.objectKey(hash, kind))
 	logResponse(c.accessLogger, "DOWNLOAD", c.bucket, c.objectKey(hash, kind), nil)
 
 	if kind == cache.CAS && c.v2mode {
