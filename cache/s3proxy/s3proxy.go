@@ -197,16 +197,19 @@ func (c *s3Cache) Put(ctx context.Context, kind cache.EntryKind, hash string, si
 }
 
 func (c *s3Cache) UpdateModificationTimestamp(ctx context.Context, bucket string, object string) {
-	_, err := c.mcore.CopyObject(
-		ctx,
-		bucket,
-		object,
-		bucket,
-		object,
-		map[string]string{},
-		minio.CopySrcOptions{},
-		minio.PutObjectOptions{})
-	logResponse(c.accessLogger, "COPY", bucket, object, err)
+	src := minio.CopySrcOptions{
+		Bucket: bucket,
+		Object: object,
+	}
+
+	dst := minio.CopyDestOptions{
+		Bucket: bucket,
+		Object: object,
+	}
+
+	_, err := c.mcore.ComposeObject(context.Background(), dst, src)
+
+	logResponse(c.accessLogger, "COMPOSE", bucket, object, err)
 }
 
 func (c *s3Cache) Get(ctx context.Context, kind cache.EntryKind, hash string) (io.ReadCloser, int64, error) {
